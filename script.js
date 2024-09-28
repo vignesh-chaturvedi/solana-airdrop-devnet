@@ -1,18 +1,34 @@
-const { Connection, PublicKey } = solanaWeb3;
+const { Connection, PublicKey, LAMPORTS_PER_SOL } = solanaWeb3;
 
-function submitForm() {
+async function submitForm() {
   let solanaPublicKey = document.getElementById("inputText").value;
   let airdropAmount = document.getElementById("airdropAmount").value;
-  let lamports = airdropAmount * 1e9;
-  const connection = new Connection("https://api.devnet.solana.com");
-  var publicKeyObject = new PublicKey(solanaPublicKey);
-  const fn = async () => {
+
+  // Validate inputs
+  if (!solanaPublicKey || !airdropAmount || isNaN(airdropAmount)) {
+    alert("Please provide a valid wallet address and airdrop amount.");
+    return;
+  }
+
+  try {
+    // Convert SOL amount to lamports (1 SOL = 1e9 lamports)
+    let lamports = airdropAmount * LAMPORTS_PER_SOL;
+
+    const connection = new Connection("https://api.devnet.solana.com");
+
+    const publicKeyObject = new PublicKey(solanaPublicKey);
+
     let txhash = await connection.requestAirdrop(publicKeyObject, lamports);
-    console.log(`txhash: ${txhash}`);
-    const inputText = document.getElementById("inputText").value;
+
+    // Log the transaction hash and alert the user
+    console.log(`Airdrop transaction hash: ${txhash}`);
     alert(
-      "You transferred: " + airdropAmount + " SOL to this wallet " + inputText
+      `Airdrop of ${airdropAmount} SOL has been sent to wallet ${solanaPublicKey}`
     );
-  };
-  fn();
+  } catch (error) {
+    console.error("Airdrop failed:", error);
+    alert(
+      "Failed to request airdrop. Please check the wallet address and try again."
+    );
+  }
 }
